@@ -1,0 +1,83 @@
+function Main
+    /inbound=true/ 
+        call inbound
+    end
+
+    /inbound=false/ 
+        call outbound
+    end
+endfunction
+
+end
+
+function inbound
+    /200=CME/
+        call inbound_cme
+    end
+    /55=6E && 200=CME && (150=2 || 150=1)/
+        while_group 146
+            /147=12/ 
+            then
+                out.147 = in.147
+                out.148 = in.148 * 10
+            end
+            /all/
+            then
+                nothing
+            end
+            /default/
+            then
+                nothing
+            end
+        end
+    end
+    /all/
+        in = out
+    end
+
+    /default/
+        nothing
+    end
+endfunction
+
+function inbound_cme
+    /55=6E && 144=%h%/
+        nothing
+    end
+endfunction
+
+
+begin outbound
+/55=6E && 200=CME && (150=2 || 150=1)/
+end
+outbound /55=6E && 200=CME && (150=2 || 150=1)/
+
+end
+
+
+if (direction == in)
+then
+    inbound()
+else
+    outbound()
+end
+
+
+function inbound
+    switch
+    case /55=6E && 200=CME && (150=2 || 150=1)/
+        groups 146
+        then
+            match /147=12/ 
+            then
+                out.147 = in.147
+                out.148 = in.148 * 10
+            end
+        end
+    endcase
+    default
+        out.* = in.*
+        endcase
+    endswitch
+endfunction
+
